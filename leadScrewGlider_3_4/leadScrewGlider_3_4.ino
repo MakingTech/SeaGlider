@@ -55,24 +55,26 @@ NO POT IN SERVO 3. Feedback from servo pot, use it as an encoder
     boolean exitPause = false;  //___________----------fix this
 
   //other Constants
+    int stallThreshold = 22;  // <<<<<---------------- set the stall sensitivity       
+    int motorStartTime = 350;         // this allows the motor to run for a short time before checking for stall
     int pauseTime = 1200;             // 1.2 sec
     //int minPause =  1000;           // not in use this is for if the pause time were controlled by the pot
     //int maxPause = 15000;           // not in use
     long diveDriveTime;    
-    int minDiveTime =  800;           // in milliseconds  800 is a good min ~20cc on 5/16-18 7v 
-    int maxDiveTime = 16000;          // in milliseconds 1600 is a good max ~42cc on 5/16-18 7v 
+    int minDiveTime =  700 - motorStartTime;  // 700 is a good min ~20cc on 1/4-10 lag bolt 6v
+                                              // 800 is a good min ~20cc on 5/16-18 7v
+    int maxDiveTime = 15000 - motorStartTime; // 1500 is a good max ~40cc on 1/4-10 lag bolt 6v 
+                                              // 1600 is a good max ~42cc on 5/16-18 7v
     //long diveDriveTime  = 13350 - motorStartTime; //  <<<<<----------------------- set dive drive time
                       // 11 sec = ~ 30ML on 4AAA W/ 1/4-10 Lag bolt
                       // 13 sec = ~ 35ML at 7.5v W/ 5/16-18 machine screw
                       // 11 sec = ~ 30ML at 6v W/ 300 rpm servo driving 1/4-20 screw
 
-    int potValue = 0;                 // 10-bit analog reading of voltage on pot pin (0-1023)
     byte servoDiveCommand = 0;        // this is the value that the dive method sends to the servo
     byte servoRiseCommand = 180;      // this is the value that the rise method sends to the servo
 
-    int stallThreshold = 22;  // <<<<<---------------- set the stall sensitivity       
-    int motorStartTime = 350;         // this allows the motor to run for a short time before checking for stall
 //global variables
+    int potValue = 0;                 // 10-bit analog reading of voltage on pot pin (0-1023)
     int stallValue = 0;               // the variable that stores the read stall value
     long previousMillis = 0;          // this variable is used for the diveDriveTime timer
 
@@ -228,7 +230,7 @@ void dive(){
   myservo.attach(servoPin);                     // attaches the servo on servoPin to the servo object 
   myservo.write(servoDiveCommand);              // drive servo clockwise, pull weight forward (pull counterweight & plunger towards servo)
   delay(motorStartTime);
-  while (digitalRead(diveStopPin) == HIGH && !(stallValue >= stallThreshold)){     // drive servo until riseStop switch is hit
+  while (/*digitalRead(diveStopPin) == HIGH &&*/ !(stallValue >= stallThreshold)){     // drive servo until riseStop switch is hit
 //    digitalWrite(ledPin, HIGH);                 // flash led fast while driving servo (50ms period)
 //    delay(15);
 //    digitalWrite(ledPin, LOW);
@@ -250,7 +252,7 @@ void rise(){
   delay(motorStartTime);                        // ignore startup current spike
   unsigned long currentMillis = millis();       // declare currentMilis variable
   previousMillis = currentMillis;   
-  while (digitalRead(riseStopPin) == HIGH  && !(stallValue >= stallThreshold) && (currentMillis - previousMillis < diveDriveTime) ){     // drive servo until riseStop switch is hit
+  while (/*digitalRead(riseStopPin) == HIGH  && */!(stallValue >= stallThreshold) && (currentMillis - previousMillis < diveDriveTime) ){     // drive servo until riseStop switch is hit
     checkStall();
 //    checkIR();
     currentMillis = millis();
@@ -322,7 +324,7 @@ void futurepauseMethod(){
 //            if (results.value == 0xFD609F){
 //              exit = true;
 //            } else if (results.value == 0xFD807F){
-                digitalWrite(STAY_ON_PIN, LOW);                 // turn off
+               // not in use digitalWrite(STAY_ON_PIN, LOW);                 // turn off
 //            }
 //          }
 //        }
@@ -383,7 +385,7 @@ void checkIR(){
 //            if (results.value == 0xFD609F){
 //              exit = true;
 //            } else if (results.value == 0xFD807F){
-                digitalWrite(STAY_ON_PIN, LOW);                 // turn off
+                // not in use digitalWrite(STAY_ON_PIN, LOW);                 // turn off
 //            }
 //          }
 //        }
